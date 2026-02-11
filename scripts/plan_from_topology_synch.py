@@ -1,5 +1,12 @@
 #!/usr/bin/env python3
 
+# SPDX-FileCopyrightText: 2019-2026 Christian Hundt
+# SPDX-FileCopyrightText: 2019-2026 Daniel Jünger
+# SPDX-FileCopyrightText: 2019-2026 Parallel and Distributed Architectures <hpc@informatik.uni-mainz.de>
+# SPDX-FileCopyrightText: 2019-2026 Robin Kobus
+#
+# SPDX-License-Identifier: MIT
+
 import numpy as np
 from ortools.linear_solver import pywraplp
 import json

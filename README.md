@@ -1,3 +1,12 @@
+<!--
+SPDX-FileCopyrightText: 2019-2026 Christian Hundt
+SPDX-FileCopyrightText: 2019-2026 Daniel Jünger
+SPDX-FileCopyrightText: 2019-2026 Parallel and Distributed Architectures <hpc@informatik.uni-mainz.de>
+SPDX-FileCopyrightText: 2019-2026 Robin Kobus
+
+SPDX-License-Identifier: MIT
+-->
+
 # `gossip`: Efficient Communication Primitives for Multi-GPU Systems
 
 Gossip supports scatter, gather and all-to-all communication. To execute one of the communication primitives a transfer plan is needed. Use the provided [scripts](scripts) to generate optimized plans for your specific NVLink topology. The [plans directory](plans) contains optimized plans for typical 4 GPU configurations ([P100](plans/p100_quad_opt/) and [V100](plans/v100_quad_opt/)) as well as 8 GPU [DGX-1 Volta](plans/dgx1_opt). If no transfer plan is provided gossip will fall back to the default strategy using direct transfers between GPUs.
