@@ -7,12 +7,12 @@
 // SPDX-License-Identifier: MIT
 
 #include "executor.cuh"
-#include "include/clipp/include/clipp.h"
-#include "include/gossip.cuh"
-#include "include/plan_parser.hpp"
 
 #include <assert.h>
+#include <clipp.h>
 #include <cstdint>
+#include <gossip/gossip.cuh>
+#include <gossip/plan_parser.hpp>
 #include <iostream>
 #include <memory>
 #include <string>

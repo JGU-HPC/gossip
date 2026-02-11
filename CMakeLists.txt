@@ -1,3 +1,8 @@
+# SPDX-FileCopyrightText: 2026 Markus Vieth <vieth@uni-mainz.de>
+# SPDX-FileCopyrightText: 2026 Parallel and Distributed Architectures <hpc@informatik.uni-mainz.de>
+#
+# SPDX-License-Identifier: BSL-1.0
+
 cmake_minimum_required(VERSION 3.28 FATAL_ERROR)
 
 project(
@@ -8,6 +13,7 @@ project(
 
 find_package(CUDAToolkit REQUIRED)
 find_package(pararch.hpc_helpers REQUIRED)
+find_package(CCCL REQUIRED)
 
 add_library(pararch.gossip INTERFACE)
 target_sources(
@@ -21,7 +27,7 @@ target_sources(
 			"${CMAKE_CURRENT_SOURCE_DIR}/include/gossip/all_to_all_async.cuh"
 			"${CMAKE_CURRENT_SOURCE_DIR}/include/gossip/all_to_all_plan.hpp"
 			"${CMAKE_CURRENT_SOURCE_DIR}/include/gossip/broadcast.cuh"
-			"${CMAKE_CURRENT_SOURCE_DIR}/include/gossip/broadcast_plan.cpp"
+			"${CMAKE_CURRENT_SOURCE_DIR}/include/gossip/broadcast_plan.hpp"
 			"${CMAKE_CURRENT_SOURCE_DIR}/include/gossip/common.cuh"
 			"${CMAKE_CURRENT_SOURCE_DIR}/include/gossip/config.h"
 			"${CMAKE_CURRENT_SOURCE_DIR}/include/gossip/context.cuh"
@@ -44,15 +50,16 @@ set_target_properties(
 		VERIFY_INTERFACE_HEADER_SETS ON
 )
 
-target_link_libraries(pararch.gossip INTERFACE CUDA::cudart pararch::hpc_helpers)
+target_link_libraries(pararch.gossip INTERFACE CUDA::cudart pararch::hpc_helpers CCCL::CCCL)
 add_library(pararch::gossip ALIAS pararch.gossip)
 
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/plans")
-
-configure_file(
-	"CITATION.cff.in"
-	"${CMAKE_CURRENT_SOURCE_DIR}/CITATION.cff"
-	@ONLY
+install(
+	TARGETS pararch.gossip
+	COMPONENT pararch.gossip
+	EXPORT pararch.gossip
+	FILE_SET HEADERS
 )
 
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/plan_parser")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/examples")
 

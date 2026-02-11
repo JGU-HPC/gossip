@@ -13,6 +13,7 @@
 #include "context.cuh"
 #include "error_checking.hpp"
 
+#include <cuda/cmath>
 #include <hpc_helpers/cuda_helpers>
 #include <vector>
 
@@ -297,7 +298,7 @@ namespace gossip {
 			const auto num_steps  = transfer_plan.num_steps();
 			const auto num_chunks = transfer_plan.num_chunks();
 
-			size_t              size_per_chunk = SDIV(sendsize, num_chunks);
+			size_t              size_per_chunk = cuda::ceil_div(sendsize, num_chunks);
 			std::vector<size_t> sendsizes(num_chunks, size_per_chunk);
 			sendsizes.back() = sendsize - (num_chunks - 1) * size_per_chunk;
 

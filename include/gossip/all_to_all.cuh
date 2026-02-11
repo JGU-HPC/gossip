@@ -14,6 +14,7 @@
 #include "context.cuh"
 #include "error_checking.hpp"
 
+#include <cuda/cmath>
 #include <hpc_helpers/cuda_helpers>
 #include <vector>
 
@@ -112,8 +113,9 @@ namespace gossip {
 				           "sequence size does not match number of phases."))
 					return false;
 
-				const size_t size_per_chunk = SDIV(sizes[sequence.front()][sequence.back()], num_chunks);
-				size_t       transfer_size  = size_per_chunk * chunks;
+				const size_t size_per_chunk =
+				    cuda::ceil_div(sizes[sequence.front()][sequence.back()], num_chunks);
+				size_t transfer_size = size_per_chunk * chunks;
 
 				const size_t src_offset = src_offsets[sequence.front()][sequence.back()];
 				const size_t trg_offset = trg_offsets[sequence.front()][sequence.back()];

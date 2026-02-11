@@ -152,7 +152,7 @@ void run_multisplit_all2all(T1&          context,
 	}
 
 	// perform multisplit on each device
-	auto part_hash = [=] DEVICEQUALIFIER(const data_t& x) { return (x % num_gpus); };
+	auto part_hash = [=] __device__(const data_t& x) { return (x % num_gpus); };
 
 	std::vector<std::vector<size_t>> table(num_gpus, std::vector<size_t>(num_gpus));
 	{
@@ -258,7 +258,7 @@ void run_multisplit_all2all_async(T1&          context,
 	}
 
 	// perform multisplit on each device
-	auto part_hash = [=] DEVICEQUALIFIER(const data_t& x) { return (x % num_gpus); };
+	auto part_hash = [=] __device__(const data_t& x) { return (x % num_gpus); };
 
 	std::vector<std::vector<size_t>> table(num_gpus, std::vector<size_t>(num_gpus));
 	{
@@ -389,7 +389,7 @@ void run_multisplit_scatter_gather(T1&          context,
 	}
 
 	// perform multisplit on main device
-	auto part_hash = [=] HOSTDEVICEQUALIFIER(const data_t& x) { return (x % num_gpus); };
+	auto part_hash = [=] __host__ __device__(const data_t& x) { return (x % num_gpus); };
 
 	std::vector<std::vector<size_t>> table(num_gpus, std::vector<size_t>(num_gpus));
 	{
@@ -580,7 +580,7 @@ void run_multisplit_broadcast(T1&          context,
 	}
 
 	// perform multisplit on main device
-	auto part_hash = [=] HOSTDEVICEQUALIFIER(const data_t& x) { return (x % num_gpus); };
+	auto part_hash = [=] __host__ __device__(const data_t& x) { return (x % num_gpus); };
 
 	std::vector<std::vector<size_t>> table(num_gpus, std::vector<size_t>(num_gpus));
 	{

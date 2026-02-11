@@ -5,10 +5,9 @@
 //
 // SPDX-License-Identifier: MIT
 
-#include "plan_parser.hpp"
-
 #include <assert.h>
 #include <fstream>
+#include <gossip/plan_parser.hpp>
 #include <iostream>
 #include <nlohmann/json.hpp>
 #include <vector>
