@@ -1,0 +1,11 @@
+# SPDX-FileCopyrightText: 2024-2025 Markus Vieth <vieth@uni-mainz.de>
+# 
+# SPDX-License-Identifier: CC0-1.0
+---
+Checks: '-*,bugprone-*,concurrency-*,cppcoreguidelines-*,modernize-*,performance-*,-clang-diagnostic-error,llvm-header-guard'
+FormatStyle: 'file'
+HeaderFileExtensions: ['', 'h','hh','hpp','hxx', 'cuh']
+# ImplementationFileExtensions: ['c','cc','cpp','cxx', 'cu']
+ExtraArgs: ['-Xclang -fcuda-allow-variadic-functions', '-ferror-limit=1', '-D__NV_NO_HOST_COMPILER_CHECK', '-D_LIBCUDACXX_HAS_CUDA_ATOMIC_IMPL']
+# SystemHeaders: false
+# HeaderFilterRegex: './include/cuHIBF/**.cuh'

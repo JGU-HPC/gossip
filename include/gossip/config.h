@@ -1,13 +1,14 @@
 /*
  * SPDX-FileCopyrightText: 2019-2026 Christian Hundt
  * SPDX-FileCopyrightText: 2019-2026 Daniel Jünger
- * SPDX-FileCopyrightText: 2019-2026 Parallel and Distributed Architectures <hpc@informatik.uni-mainz.de>
  * SPDX-FileCopyrightText: 2019-2026 Robin Kobus
+ * SPDX-FileCopyrightText: 2019-2026 Parallel and Distributed Architectures
+ * <hpc@informatik.uni-mainz.de>
  *
  * SPDX-License-Identifier: MIT
  */
 
-# pragma once
+#pragma once
 
 #include <cstdint>
 
@@ -15,14 +16,10 @@
 
 namespace gossip {
 
-    using gpu_id_t = uint16_t;
-    // type of multisplit counters
-    using cnter_t = uint64_t;
+	using gpu_id_t = uint16_t;
+	// type of multisplit counters
+	using cnter_t = uint64_t;
 
-    enum class PEER_STATUS : uint8_t {
-        SLOW = 0,
-        DIAG = 1,
-        FAST = 2
-    };
+	enum class PEER_STATUS : uint8_t { SLOW = 0, DIAG = 1, FAST = 2 };
 
-} // namespace
+} // namespace gossip

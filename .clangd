@@ -1,0 +1,109 @@
+# SPDX-FileCopyrightText: 2025 Markus Vieth <vieth@uni-mainz.de>
+# SPDX-FileCopyrightText: 2025 Parallel and Distributed Architectures <hpc@lists.uni-mainz.de>
+#
+# SPDX-License-Identifier: CC0-1.0
+
+# The following part is copied from NVIDIAs CCCL https://github.com/NVIDIA/cccl/blob/main/.clangd
+# and could fall under the Apache License v2.0
+
+# Apply a config conditionally to all C files
+If:
+  PathMatch: .*\.(c|h)$
+
+---
+
+# Apply a config conditionally to all C++ files
+If:
+  PathMatch: .*\.(c|h)pp
+
+---
+
+# Apply a config conditionally to all CUDA files
+If:
+  PathMatch: .*\.cuh?
+CompileFlags:
+  Add:
+    # Allow variadic CUDA functions
+    - "-Xclang=-fcuda-allow-variadic-functions"
+
+---
+
+# For __cccl/epilogue.h, force-include prologue.h to avoid spurious errors
+If:
+  PathMatch: ".*libcudacxx/include/cuda/std/__cccl/epilogue[.]h"
+
+CompileFlags:
+  Add:
+  - -include
+  - cuda/std/__cccl/prologue.h
+  - -Wno-unknown-pragmas
+
+---
+
+# For __cccl/visibility.h, pretend the file has been included from <cuda/__cccl_config>
+If:
+  PathMatch: ".*libcudacxx/include/cuda/std/__cccl/visibility[.]h"
+
+CompileFlags:
+  Add:
+  - -D_CUDA__CCCL_CONFIG
+
+---
+
+# For __execution/epilogue.cuh, force-include prologue.cuh to avoid spurious errors
+If:
+  PathMatch: ".*cudax/include/cuda/experimental/__execution/epilogue[.]cuh"
+
+CompileFlags:
+  Add:
+  - -include
+  - cuda/experimental/__execution/prologue.cuh
+  - -Wno-unknown-pragmas
+
+---
+CompileFlags:
+  Compiler: clang++
+  CompilationDatabase: .
+  Add:
+    - -x
+    - cuda
+    - -Wno-unknown-cuda-version
+    - -Wno-pragma-system-header-outside-header
+    - --no-cuda-version-check
+    #- -stdlib=libc++
+    - "-ferror-limit=0"
+    - "-ftemplate-backtrace-limit=0"
+    - -std=c++20
+    #- -D__CUDACC__
+  Remove:
+    - "--driver-mode=*"
+    - -stdpar
+    - -fdeps*
+    - -fmodule*
+    - "-Xcompiler=*"
+    - "--expt-extended-lambda"
+    - "--expt-relaxed-constexpr"
+    - "--extended-lambda"
+    - "-forward-unknown-to-host-compiler"
+    - -G
+    - --options-file
+    - -Xcompiler=-fPIE
+    - "-Xfatbin*"
+    - "-gencode*"
+    - "--generate-code*"
+    - "-ccbin*"
+    - "--compiler-options*"
+    - "-arch*"
+Index:
+  StandardLibrary: No
+Hover:
+  ShowAKA: Yes
+InlayHints:
+  Enabled: Yes
+  ParameterNames: Yes
+  DeducedTypes: Yes
+Diagnostics:
+  Suppress:
+    - "variadic_device_fn"
+    - "attributes_not_allowed"
+    - "module_odr_violation_function"

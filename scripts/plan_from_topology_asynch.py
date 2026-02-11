@@ -18,10 +18,12 @@ from topology_parser import get_topology_matrix
 
 parser = argparse.ArgumentParser(description="create transfer plan.")
 parser.add_argument("mode", type=str, help="scatter, gather or all2all")
-parser.add_argument("main_gpu", type=int, help="source for scatter or target for gather")
-args=parser.parse_args()
+parser.add_argument(
+    "main_gpu", type=int, help="source for scatter or target for gather"
+)
+args = parser.parse_args()
 
-modes = {"scatter":0, "gather":1, "all2all":2}
+modes = {"scatter": 0, "gather": 1, "all2all": 2}
 if args.mode in modes.keys():
     mode = args.mode
 else:
@@ -97,15 +99,15 @@ bisection_width = 0
 
 num_gpus = capacities.shape[0]
 if bisection_width == 0:
-    bisection_width = np.sum(capacities[num_gpus//2:,:num_gpus//2]).astype(int)
+    bisection_width = np.sum(capacities[num_gpus // 2 :, : num_gpus // 2]).astype(int)
 
-main_degree = int(np.sum(capacities[main_gpu, :]) - capacities[main_gpu,main_gpu])
+main_degree = int(np.sum(capacities[main_gpu, :]) - capacities[main_gpu, main_gpu])
 print("main:", main_gpu, "degree:", main_degree, "bisection width:", bisection_width)
 
 
 print("topology:")
 print(capacities)
-max_capacity = np.max(capacities * (1-np.eye(num_gpus)))
+max_capacity = np.max(capacities * (1 - np.eye(num_gpus)))
 print("max links:", max_capacity)
 
 if max_capacity > 2:
@@ -117,28 +119,31 @@ lengths = np.where(capacities <= max_capacity, max_capacity / capacities, 1)
 # print(lengths)
 
 
-if modes[mode] == 0: # scatter
+if modes[mode] == 0:  # scatter
     num_commodities = 1
-    parts_per_commodity = int(main_degree // np.gcd(main_degree, num_gpus-1))
+    parts_per_commodity = int(main_degree // np.gcd(main_degree, num_gpus - 1))
     # one gpu starts with one chunk of the commodity
     source = main_gpu
     commodities_out = np.ones(num_gpus) * parts_per_commodity
     commodities_in = np.zeros(num_gpus)
     commodities_in[source] += np.sum(commodities_out)
-elif modes[mode] == 1: # gather
+elif modes[mode] == 1:  # gather
     num_commodities = 1
-    parts_per_commodity = int(main_degree // np.gcd(main_degree, num_gpus-1))
+    parts_per_commodity = int(main_degree // np.gcd(main_degree, num_gpus - 1))
     # one gpu starts with all chunks of the commodity
     target = main_gpu
     commodities_in = np.ones(num_gpus) * parts_per_commodity
     commodities_out = np.zeros(num_gpus)
     commodities_out[target] += np.sum(commodities_in)
-elif modes[mode] == 2: # all-to-all
+elif modes[mode] == 2:  # all-to-all
     num_commodities = num_gpus
-    parts_per_commodity = int(bisection_width // np.gcd(bisection_width, int(np.ceil(num_gpus/2)*np.floor(num_gpus/2))))
+    parts_per_commodity = int(
+        bisection_width
+        // np.gcd(bisection_width, int(np.ceil(num_gpus / 2) * np.floor(num_gpus / 2)))
+    )
     # each gpu starts with one of each commodity
-    commodities_in = np.ones((num_gpus,num_commodities)) * parts_per_commodity
-    commodities_out = np.diagflat( np.sum(commodities_in, axis=0) )
+    commodities_in = np.ones((num_gpus, num_commodities)) * parts_per_commodity
+    commodities_out = np.diagflat(np.sum(commodities_in, axis=0))
 else:
     raise SystemExit()
 
@@ -153,16 +158,18 @@ print(commodities_out)
 # storage size of each gpu in number of items
 # max_space_per_gpu = num_commodities * parts_per_commodity
 
-min_steps = np.ceil((num_commodities-1) * parts_per_commodity / main_degree * max_capacity).astype(int)
-max_steps = num_gpus*num_commodities*parts_per_commodity
+min_steps = np.ceil(
+    (num_commodities - 1) * parts_per_commodity / main_degree * max_capacity
+).astype(int)
+max_steps = num_gpus * num_commodities * parts_per_commodity
 
-for steps in range(min_steps, max_steps+1):
-    print("Creating flow problem for %i timesteps" %(steps))
+for steps in range(min_steps, max_steps + 1):
+    print("Creating flow problem for %i timesteps" % (steps))
 
-    flows_per_gpu = num_gpus*num_commodities
+    flows_per_gpu = num_gpus * num_commodities
 
     # solver = pywraplp.Solver('mcf', pywraplp.Solver.GLOP_LINEAR_PROGRAMMING)
-    solver = pywraplp.Solver('mcf', pywraplp.Solver.CBC_MIXED_INTEGER_PROGRAMMING)
+    solver = pywraplp.Solver("mcf", pywraplp.Solver.CBC_MIXED_INTEGER_PROGRAMMING)
     # solver = pywraplp.Solver('mcf', pywraplp.Solver.CLP_LINEAR_PROGRAMMING)
     # solver = pywraplp.Solver('mcf', pywraplp.Solver.BOP_INTEGER_PROGRAMMING)
 
@@ -170,16 +177,20 @@ for steps in range(min_steps, max_steps+1):
     objective.SetMinimization()
 
     # (1) conservation_constraints for each commodity flow at each gpu in each step
-    conservation_constraints = np.empty((steps+1,num_gpus,num_commodities), dtype=pywraplp.Constraint)
+    conservation_constraints = np.empty(
+        (steps + 1, num_gpus, num_commodities), dtype=pywraplp.Constraint
+    )
     # Flow conservation on transit nodes: The amount of a flow entering is the same that exits the node.
     in_out_bounds = np.zeros_like(conservation_constraints)
     # Flow conservation at the source: A flow must exit its source node completely.
-    in_out_bounds[0] = commodities_in.reshape((num_gpus,num_commodities))
+    in_out_bounds[0] = commodities_in.reshape((num_gpus, num_commodities))
     # Flow conservation at the destination: A flow must enter its sink node completely.
-    in_out_bounds[-1] = -1*commodities_out.reshape((num_gpus,num_commodities))
+    in_out_bounds[-1] = -1 * commodities_out.reshape((num_gpus, num_commodities))
 
     for i in range(conservation_constraints.size):
-        conservation_constraints.flat[i] = solver.Constraint(in_out_bounds.flat[i], in_out_bounds.flat[i])
+        conservation_constraints.flat[i] = solver.Constraint(
+            in_out_bounds.flat[i], in_out_bounds.flat[i]
+        )
 
     # (2) space constraints: each gpu can hold exactly <num_gpus> commodities
     # space_constraints = np.empty((steps,num_gpus), dtype=pywraplp.Constraint)
@@ -198,52 +209,64 @@ for steps in range(min_steps, max_steps+1):
                 # copying edges
                 if src == trg:
                     # copy at most num_commodities items
-                    edge_capacity = num_gpus*parts_per_commodity
+                    edge_capacity = num_gpus * parts_per_commodity
                     cost = 0
                     length = 1
                 # sending edges
-                if (src != trg):
+                if src != trg:
                     edge_capacity = 1
                     cost = 1
                     length = int(lengths[src][trg])
 
-                if step+length <= steps:
+                if step + length <= steps:
                     # (3) Link capacity: The sum of all flows routed over a link does not exceed its capacity.
-                    edge_name = (step,src,trg)
-                    edge_constraint[edge_name] = solver.Constraint(-solver.infinity(), edge_capacity)
+                    edge_name = (step, src, trg)
+                    edge_constraint[edge_name] = solver.Constraint(
+                        -solver.infinity(), edge_capacity
+                    )
 
                     for c in range(num_commodities):
-                        name = 't'+str(step)+' '+str(src)+'to'+str(trg)+' c'+str(c)
+                        name = (
+                            "t"
+                            + str(step)
+                            + " "
+                            + str(src)
+                            + "to"
+                            + str(trg)
+                            + " c"
+                            + str(c)
+                        )
                         flow = solver.IntVar(0, edge_capacity, name)
                         flows.append(flow)
                         # increase cost with multiplicity
-                        objective.SetCoefficient(flow, cost*length)
+                        objective.SetCoefficient(flow, cost * length)
                         # sum flows of same edge
                         for prev in range(length):
                             if (step - prev) >= 0:
-                                edge_name = (step - prev,src,trg)
+                                edge_name = (step - prev, src, trg)
                                 edge_constraint[edge_name].SetCoefficient(flow, 1)
                         # sum flows of same gpu
                         # space_constraints[step][src].SetCoefficient(flow, 1)
                         # outgoing flow at src
                         conservation_constraints[step][src][c].SetCoefficient(flow, 1)
                         # incoming flow at trg
-                        conservation_constraints[step+length][trg][c].SetCoefficient(flow, -1)
+                        conservation_constraints[step + length][trg][c].SetCoefficient(
+                            flow, -1
+                        )
 
-
-    print('Number of variables =', solver.NumVariables())
-    print('Number of constraints =', solver.NumConstraints())
+    print("Number of variables =", solver.NumVariables())
+    print("Number of constraints =", solver.NumConstraints())
 
     status = solver.Solve()
 
     if status != solver.OPTIMAL:
         if status == solver.FEASIBLE:
-            print('A potentially suboptimal solution was found\n.')
+            print("A potentially suboptimal solution was found\n.")
         else:
-            print('The solver could not solve the problem in %i timesteps.\n' % (steps))
+            print("The solver could not solve the problem in %i timesteps.\n" % (steps))
         continue
     else:
-        print('A solution was found:')
+        print("A solution was found:")
 
         copies = 0
         transfers = 0
@@ -275,27 +298,26 @@ for steps in range(min_steps, max_steps+1):
 
         # print all flows
         for step in range(steps):
-            print("\nstep",step)
+            print("\nstep", step)
             print(flows_array[step])
             # for gpu in range(num_gpus):
             #     print("from gpus",gpu,"send commodity (column) to gpu (row)")
             #     print(flows_array[step,gpu])
-
 
         # trace sequence of owners per commodity
         plan = []
         while np.any(flows_array[0] > 0):
             step = 0
             src, trg, commodity = np.transpose(np.nonzero(flows_array[step]))[0]
-            flows_array[step,src,trg,commodity] -= 1
+            flows_array[step, src, trg, commodity] -= 1
             owners = [src]
             for i in range(int(lengths[src][trg])):
                 owners.append(int(trg))
             step += int(lengths[src][trg])
             while step < steps:
                 src = owners[-1]
-                trg = np.nonzero(flows_array[step,src,:,commodity])[0][0]
-                flows_array[step,src,trg,commodity] -= 1
+                trg = np.nonzero(flows_array[step, src, :, commodity])[0][0]
+                flows_array[step, src, trg, commodity] -= 1
                 for i in range(int(lengths[src][trg])):
                     owners.append(int(trg))
                 step += int(lengths[src][trg])
@@ -311,20 +333,20 @@ for steps in range(min_steps, max_steps+1):
         print("num paths:", len(counts))
 
         data = {
-            "type" : mode,
-            "num_gpus" : num_gpus,
-            "main_gpu" : main_gpu,
-            "num_steps" : steps,
-            "num_chunks" : parts_per_commodity,
-            "plan" : values.tolist(),
-            "chunks" : counts.tolist()
+            "type": mode,
+            "num_gpus": num_gpus,
+            "main_gpu": main_gpu,
+            "num_steps": steps,
+            "num_chunks": parts_per_commodity,
+            "plan": values.tolist(),
+            "chunks": counts.tolist(),
         }
         # print(data)
 
         json_string = json.dumps(data)
         print(json_string)
-        json_name = mode+"_plan.json"
-        print("saving json to '%s'" %(json_name))
+        json_name = mode + "_plan.json"
+        print("saving json to '%s'" % (json_name))
         with open(json_name, "w") as file:
             json.dump(data, file)
 
