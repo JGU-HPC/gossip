@@ -46,13 +46,13 @@ authors:
     email: "vieth@uni-mainz.de"
     affiliation: "HPC JGU Mainz"
     orcid: "https://orcid.org/0000-0002-7281-3364"
-#identifiers: # TODO
+identifiers: # TODO
   #- type: "doi"
   #  value: "10.1234/zenodo.4321"
   #  description: "Zenodo"
-  #- type: "swh"
-  #  value: "swh:1:rev:309cf2674ee7a0749978cf8265ab91a60aea0f7d"
-  #  description: "Sofware Heritage Test"
+  - type: "swh"
+    value: "swh:1:dir:58241cd3e6c7e978d41638ffe8fae076bc059826"
+    description: "Sofware Heritage"
 preferred-citation:
   authors:
     - family-names: "Kobus"
